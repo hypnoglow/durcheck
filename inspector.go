@@ -27,7 +27,6 @@ func (insp *inspector) inspect(n ast.Node) []problem {
 func (insp *inspector) inspectFunc(node ast.Node) bool {
 	switch n := node.(type) {
 	case *ast.CallExpr:
-		node.Pos()
 		sel, ok := n.Fun.(*ast.SelectorExpr)
 		if !ok {
 			break
@@ -67,6 +66,10 @@ func (insp *inspector) isSuspicious(param ast.Expr) bool {
 		//if p.Kind != token.INT {
 		//	return false
 		//}
+		if p.Value == "0" {
+			// 0 is unambiguous
+			return false
+		}
 		return true
 
 	case *ast.BinaryExpr:
