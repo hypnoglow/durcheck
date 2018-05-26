@@ -1,5 +1,8 @@
 # durcheck
 
+[![Build Status](https://travis-ci.com/hypnoglow/durcheck.svg?branch=master)](https://travis-ci.com/hypnoglow/durcheck)
+[![License MIT](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)
+
 `durcheck` is a very simple linter which detects potential bugs with 
 `time.Duration` in a Go package.
 
