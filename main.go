@@ -6,9 +6,17 @@ import (
 	"go/build"
 	"log"
 	"os"
+	"io"
 
 	"github.com/kisielk/gotool"
 	"golang.org/x/tools/go/loader"
+)
+
+var (
+	// definitions for testing purposes
+
+	stderr io.Writer = os.Stderr
+	exit             = os.Exit
 )
 
 func main() {
@@ -42,7 +50,7 @@ func main() {
 
 	ntf := notifier{
 		fset: program.Fset,
-		out:  os.Stderr,
+		out:  stderr,
 	}
 
 	var wasProblem bool
@@ -66,7 +74,5 @@ func main() {
 	if wasProblem {
 		code = 1
 	}
-	os.Exit(code)
+	exit(code)
 }
-
-
