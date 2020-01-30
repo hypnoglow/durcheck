@@ -12,6 +12,15 @@ import (
 	"golang.org/x/tools/go/loader"
 )
 
+const usage = `Usage of %s:
+	durcheck [flags] [package] ...
+	durcheck [flags] [directory] ...
+	durcheck [flags] ./..
+
+Available flags:
+	-t    Also check test packages
+`
+
 var (
 	// definitions for testing purposes
 
@@ -20,11 +29,9 @@ var (
 )
 
 func main() {
+	lintTests := flag.Bool("t", false, "Also check test packages")
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
-		fmt.Fprint(os.Stderr, "\tdurcheck [package] ...\n")
-		fmt.Fprint(os.Stderr, "\tdurcheck [directory] ...\n")
-		fmt.Fprint(os.Stderr, "\tdurcheck ./... \n")
+		fmt.Fprintf(os.Stderr, usage, os.Args[0])
 	}
 	flag.Parse()
 
@@ -33,39 +40,39 @@ func main() {
 		importPaths = []string{"."}
 	}
 
-	loadcfg := loader.Config{Build: &build.Default}
-
-	unconsumed, err := loadcfg.FromArgs(importPaths, true)
-	if err != nil {
-		log.Fatalf("failed to parse arguments: %s", err)
-	}
-	if len(unconsumed) > 0 {
-		log.Fatalf("unconsumed arguments: %v", unconsumed)
-	}
-
-	program, err := loadcfg.Load()
-	if err != nil {
-		log.Fatalf("failed to load packages: %s", err)
-	}
-
-	ntf := notifier{
-		fset: program.Fset,
-		out:  stderr,
-	}
-
 	var wasProblem bool
-	for _, pkgInfo := range program.InitialPackages() {
-		if len(pkgInfo.Files) == 0 {
-			fmt.Fprintf(os.Stderr, "WARNING: no go files in package %q\n", pkgInfo.Pkg.Path())
+	for _, p := range importPaths {
+		loadcfg := loader.Config{Build: &build.Default}
+		if *lintTests {
+			loadcfg.ImportWithTests(p)
+		} else {
+			loadcfg.Import(p)
+		}
+
+		program, err := loadcfg.Load()
+		if err != nil {
+			log.Printf("failed to load packages: %s", err)
 			continue
 		}
 
-		insp := &inspector{tinf: pkgInfo.Info}
-		for _, f := range pkgInfo.Files {
-			problems := insp.inspect(f)
-			for _, p := range problems {
-				wasProblem = true
-				ntf.notify(p)
+		ntf := notifier{
+			fset: program.Fset,
+			out:  stderr,
+		}
+
+		for _, pkgInfo := range program.InitialPackages() {
+			if len(pkgInfo.Files) == 0 {
+				fmt.Fprintf(os.Stderr, "WARNING: no go files in package %q\n", pkgInfo.Pkg.Path())
+				continue
+			}
+
+			insp := &inspector{tinf: pkgInfo.Info}
+			for _, f := range pkgInfo.Files {
+				problems := insp.inspect(f)
+				for _, p := range problems {
+					wasProblem = true
+					ntf.notify(p)
+				}
 			}
 		}
 	}
