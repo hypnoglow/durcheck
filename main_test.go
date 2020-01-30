@@ -1,10 +1,10 @@
 package main
 
 import (
-	"testing"
-	"os"
 	"bytes"
+	"os"
 	"strings"
+	"testing"
 )
 
 func TestLintPackage(t *testing.T) {
