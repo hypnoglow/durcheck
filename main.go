@@ -4,9 +4,9 @@ import (
 	"flag"
 	"fmt"
 	"go/build"
+	"io"
 	"log"
 	"os"
-	"io"
 
 	"github.com/kisielk/gotool"
 	"golang.org/x/tools/go/loader"

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"go/types"
 	"go/ast"
+	"go/types"
 )
 
 type inspector struct {
